@@ -4,6 +4,10 @@ const {
   models: { User },
 } = require("./db");
 const path = require("path");
+require("dotenv").config();
+const jwt = require("jsonwebtoken");
+
+console.log(process.env.JWT);
 
 // middleware
 app.use(express.json());
@@ -13,7 +17,14 @@ app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
 app.post("/api/auth", async (req, res, next) => {
   try {
-    res.send({ token: await User.authenticate(req.body) });
+    const user = await User.findAll({
+      where: {
+        username: req.body.username,
+        password: req.body.password,
+      },
+    });
+    const token = await jwt.sign({ userId: user[0].id }, process.env.JWT);
+    res.send({ token: token });
   } catch (ex) {
     next(ex);
   }
@@ -21,7 +32,12 @@ app.post("/api/auth", async (req, res, next) => {
 
 app.get("/api/auth", async (req, res, next) => {
   try {
-    res.send(await User.byToken(req.headers.authorization));
+    const userToken = await jwt.verify(
+      req.headers.authorization,
+      process.env.JWT
+    );
+    const user = await User.findByPk(userToken.userId);
+    res.send(user);
   } catch (ex) {
     next(ex);
   }
