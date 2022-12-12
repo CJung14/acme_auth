@@ -44,8 +44,12 @@ app.get("/api/auth", async (req, res, next) => {
 
 app.get("/api/users/:id/notes", async (req, res, next) => {
   try {
-    const user = await User.findAll({
-      where: { id: req.params.id },
+    const userToken = await jwt.verify(
+      req.headers.authorization,
+      process.env.JWT
+    );
+    const user = await User.findOne({
+      where: { id: userToken.userId },
       include: { model: Note },
     });
     res.send(user.notes);

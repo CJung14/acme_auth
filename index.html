@@ -52,6 +52,15 @@
               },
             });
             setAuth(auth);
+            const { data: notesResponse } = await axios.get(
+              `/api/users/${auth.id}/notes`,
+              {
+                headers: {
+                  authorization: token,
+                },
+              }
+            );
+            setNotes(notesResponse);
           }
         };
         React.useEffect(() => {
@@ -61,6 +70,7 @@
         const logout = () => {
           window.localStorage.removeItem("token");
           setAuth({});
+          setNotes([]);
         };
 
         const signIn = async (credentials) => {
@@ -70,16 +80,18 @@
           attemptTokenLogin();
         };
 
-        const fetchNotes = async (id) => {
-          const notes = await axios.get(`/api/users/${id}/notes`);
-          setNotes(notes);
-        };
-
         if (!auth.id) return <SignIn signIn={signIn} />;
 
         return (
           <div>
-            Welcome {auth.username}!<button onClick={logout}>Logout</button>
+            <div>
+              Welcome {auth.username}!<button onClick={logout}>Logout</button>
+            </div>
+            <ul>
+              {notes.map((note) => {
+                return <li key={note.id}>{note.text}</li>;
+              })}
+            </ul>
           </div>
         );
       };
