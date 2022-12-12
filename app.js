@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const {
-  models: { User },
+  models: { User, Note },
 } = require("./db");
 const path = require("path");
 require("dotenv").config();
@@ -41,6 +41,19 @@ app.get("/api/auth", async (req, res, next) => {
     next(ex);
   }
 });
+
+app.get("/api/users/:id/notes", async (req, res, next) => {
+  try {
+    const user = await User.findAll({
+      where: { id: req.params.id },
+      include: { model: Note },
+    });
+    res.send(user.notes);
+  } catch (ex) {
+    next(ex);
+  }
+});
+
 // error handling
 app.use((err, req, res, next) => {
   console.log(err);
