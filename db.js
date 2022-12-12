@@ -4,6 +4,8 @@ const config = {
   logging: false,
 };
 
+const bcrypt = require("bcrypt");
+
 if (process.env.LOGGING) {
   delete config.logging;
 }
@@ -15,6 +17,11 @@ const conn = new Sequelize(
 const User = conn.define("user", {
   username: STRING,
   password: STRING,
+});
+
+User.addHook("beforeCreate", async (user, options) => {
+  const SALT_COUNT = 5;
+  user.password = await bcrypt.hash(user.password, SALT_COUNT);
 });
 
 User.byToken = async (token) => {
